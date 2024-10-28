@@ -1,11 +1,43 @@
+from Cryptodome.PublicKey import RSA
+from Cryptodome.Hash import SHA256
+from Cryptodome.Signature import pkcs1_15
 import pika
 import sys
 import signal
 
 topics = ['log.error.*', 'log.info.*', 'log.warning.*']
 
+def load_public_key(sensor_type):
+    file_name = 'keys/Kt_pub.pub' if sensor_type == 'temp' else 'keys/Kp_pub.pub'
+    with open(file_name, "rb") as file:
+        return RSA.import_key(file.read())
+
 def callback_message(ch, method, properties, body):
-    print(f" [x] {method.routing_key}:{body}")
+    try:
+        # decomposição dos elementos
+        topic = method.routing_key
+        level, sensor_type = topic.split('.')[-2:]
+        message, hash_received, signature = body.decode('utf-8').split('||')
+        
+        if sensor_type not in  ['temp', 'press']:
+            print(f'Invalid sensor type: {sensor_type}')
+        else:
+            hash_calculated = SHA256.new(message.encode('utf-8'))
+
+            if hash_calculated.hexdigest() != hash_received:
+                print('Invalid hash!')
+                print(f'Hash received: {hash_received}')
+                print(f'Hash calculated: {hash_calculated}')
+            else:
+                public_key = load_public_key(sensor_type)
+                pkcs1_15.new(public_key).verify(hash_calculated, bytes.fromhex(signature))
+                print(f'Level: {level}')
+                print(f'Sensor type: {sensor_type}')
+                print(f'Message: {message}\n')
+
+    except Exception as err:
+        print(f'Error on process message: {err}')
+
 
 def callback_finish(signal, frame):
     try:
