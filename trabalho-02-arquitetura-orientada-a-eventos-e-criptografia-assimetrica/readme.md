@@ -23,12 +23,12 @@ O módulo de **Alarms** monitora as mensagens dos tópicos `measures.*` e notifi
 
 Para garantir a integridade e autenticidade das informações transmitidas pelos sensores aos consumidores, cada sensor utiliza um par de chaves, composto por uma chave privada e uma chave pública, durante o processo de envio de mensagens.
 
-- O sensor de pressão (**Sp**) utiliza a chave privada **KPressure_private.pem** para assinar suas mensagens.
-- O sensor de temperatura (**St**) utiliza a chave privada **KTemperature_private.pem** para assinar suas mensagens.
+- O sensor de pressão (**Sp**) utiliza a chave privada **Kp_priv.pem** para assinar suas mensagens.
+- O sensor de temperatura (**St**) utiliza a chave privada **Kt_priv.pem** para assinar suas mensagens.
 
 As mensagens são assinadas combinando a chave privada do sensor com o cálculo de um hash da mensagem. Os consumidores, por sua vez, usam as respectivas chaves públicas dos sensores:
 
-- **KPressure_public.pub** para validar mensagens do sensor de pressão.
-- **KTemperature_public.pub** para validar mensagens do sensor de temperatura.
+- **Kp_pub.pub** para validar mensagens do sensor de pressão.
+- **Kt_pub.pub** para validar mensagens do sensor de temperatura.
 
 Os sufixos dos tópicos (`press` para o sensor de pressão e `temp` para o sensor de temperatura) são utilizados pelos consumidores para identificar a origem da mensagem e determinar qual chave pública deve ser usada para verificar a assinatura. Esse processo assegura que a integridade da mensagem não foi comprometida e que a mensagem realmente foi emitida pelo sensor indicado.
