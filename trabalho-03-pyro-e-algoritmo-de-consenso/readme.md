@@ -7,7 +7,7 @@ Usar para o desenvolvimento
 
 - [x] 1. Execute o serviço de nomes;
 - [x] 2. Implemente o líder (seguindo o código do servidor dos slides - crie uma instância do daemon, registre o objeto no daemon, registra o nome Lider_Epoca1 e a URI no serviço de nomes);
-- [ ] 3. Implemente o votante e o observador - (sigam o código do cliente dos slides - crie o daemon, pois vão receber notificação do líder para buscar atualizações do tópico, busquem a URI do "Lider_Epoca1" no serviço de nomes);
+- [x] 3. Implemente o votante e o observador - (sigam o código do cliente dos slides - crie o daemon, pois vão receber notificação do líder para buscar atualizações do tópico, busquem a URI do "Lider_Epoca1" no serviço de nomes);
 - [ ] 4. Implemente os métodos do líder;
 - [ ] 5. Implemente os métodos dos votantes e observador;
 - [ ] 6. Implemente o publicador - só vai publicar mensagens no líder;
