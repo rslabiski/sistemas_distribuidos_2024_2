@@ -14,12 +14,12 @@ class BrokerVoterObserver(object):
 
 	def __init__(self, state):
 		try:
-			print('Searching name server...')
-			name_server = Pyro5.api.locate_ns()		# localiza o servidor de nomes
 			self.daemon = Pyro5.server.Daemon()				# cria um deamon Pyro
-			self.uri = self.daemon.register(BrokerVoterObserver)		# cria um URI para o deamon Pyro
+			self.uri = self.daemon.register(self)			# cria um URI para o deamon Pyro
+			print('Searching name server...')
+			name_server = Pyro5.api.locate_ns()				# localiza o servidor de nomes
 			lider_uri = name_server.lookup('Lider_Epoca1')	# localiza o URI do lider
-			self.lider_proxy = Pyro5.api.Proxy(lider_uri) 			# cria o proxy para acessar os metodos do lider
+			self.lider_proxy = Pyro5.api.Proxy(lider_uri) 	# cria o proxy para acessar os metodos do lider
 			self.state = state
 			self.lider_proxy.register_member(self.uri, self.state)
 			print(f'Broker {self.state} URI: {self.uri} running...')

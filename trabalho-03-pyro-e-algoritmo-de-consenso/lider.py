@@ -4,15 +4,15 @@ import sys
 class BrokerLider( object ):
 
 	name = 'Lider_Epoca1'
-	quorum = {} # lista com os membros do quórum (URI: Proxy)
-	observers = {} # lista com os membros observadores (URI: Proxy)
+	quorum = [] # lista com os membros do quórum (URI: Proxy)
+	observers = [] # lista com os membros observadores (URI: Proxy)
 
 	def __init__(self):
 		try:
-			print('Searching name server...')
-			self.name_server = Pyro5.api.locate_ns()  # localiza o servidor de nomes
 			self.daemon = Pyro5.server.Daemon()
 			self.uri = self.daemon.register(self)  # registra a instância da classe
+			print('Searching name server...')
+			self.name_server = Pyro5.api.locate_ns()  # localiza o servidor de nomes
 			self.name_server.register(self.name, self.uri)  # registra o líder no servidor de nomes
 			print(f'Leader URI: {self.uri}')
 		except Exception as e:
@@ -37,10 +37,10 @@ class BrokerLider( object ):
 	@Pyro5.server.expose
 	def register_member(self, URI, state):
 		if state == 'v':
-			self.quorum[URI] = Pyro5.api.Proxy(URI)
+			self.quorum.append(URI)
 			print(f'{URI}: registered in quorum!')
 		elif state == 'o':
-			self.observers[URI] = Pyro5.api.Proxy(URI)
+			self.observers.append(URI)
 			print(f'{URI}: registered in observer!')
 		else:
 			print('State unknown!')
@@ -51,17 +51,9 @@ class BrokerLider( object ):
 		return f'Published {message}'
 	
 	def notify_all_quorum(self, message):
-		for uri, voter in self.quorum.items():
+		for member in self.quorum:
 			try:
-				# Método 1: criando um proxy novo:
-				# ERRO: BrokerVoterObserver.__init__() missing 1 required positional argument: 'state'
-				# voter_proxy = Pyro5.api.Proxy(uri)
-				# voter_proxy.notify(message)
-
-				# Método 2: Usando o proxy possuido pelo lider
-				# ERRO: the calling thread is not the owner of this proxy, create a new proxy in this thread or transfer ownership.
-				voter.notify(message)
-
+				Pyro5.api.Proxy(member).notify(message)
 			except Exception as e:
 				print(f'{e}')
 
