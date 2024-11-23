@@ -49,13 +49,13 @@ class BrokerLider( object ):
 	@Pyro5.api.expose
 	@Pyro5.api.oneway
 	@Pyro5.api.callback
-	def publish(self, message):
+	def publish(self, publisher_uri, message):
 		self.log.append(message)
 		print(f'log += {message}')
 		self.notify_all_quorum()
 		# total_votes = self.notify_all_quorum()
 		# if total_votes > quorum/2
-		# 		client.uncommit
+		Pyro5.api.Proxy(publisher_uri).uncommitted(message)
 		# else
 		# 		client.commit
 	

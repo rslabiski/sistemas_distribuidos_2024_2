@@ -50,7 +50,8 @@ class BrokerVoterObserver(object):
 			print(f'Fetch...')
 			data = Pyro5.api.Proxy(self.lider_uri).fetch(len(self.log))
 			print(f'Received: {data}')
-			self.log.append(data)
+			for item in data:
+				self.log.append(item)
 			print(f'log: {self.log}')
 		except Exception as e:
 			print(f'Error: {e}')
