@@ -4,6 +4,7 @@ import sys
 class BrokerLider( object ):
 
 	name = 'Lider_Epoca1'
+	log = []
 	quorum = [] # lista com os membros do quórum (URI: Proxy)
 	observers = [] # lista com os membros observadores (URI: Proxy)
 
@@ -34,7 +35,7 @@ class BrokerLider( object ):
 			pass
 		self.daemon.shutdown()
 
-	@Pyro5.server.expose
+	@Pyro5.api.expose
 	def register_member(self, URI, state):
 		if state == 'v':
 			self.quorum.append(URI)
@@ -45,17 +46,37 @@ class BrokerLider( object ):
 		else:
 			print('State unknown!')
 
-	@Pyro5.server.expose
+	@Pyro5.api.expose
+	@Pyro5.api.oneway
+	@Pyro5.api.callback
 	def publish(self, message):
-		self.notify_all_quorum(message)
-		return f'Published {message}'
+		self.log.append(message)
+		print(f'log += {message}')
+		self.notify_all_quorum()
+		# total_votes = self.notify_all_quorum()
+		# if total_votes > quorum/2
+		# 		client.uncommit
+		# else
+		# 		client.commit
 	
-	def notify_all_quorum(self, message):
+	@Pyro5.api.expose
+	@Pyro5.api.callback
+	def fetch(self, offset):
+		data = self.log[offset:]
+		print(f'Buscado: {data}')
+		return data
+	
+	def notify_all_quorum(self):
+		i = 1
+		print('Notificando quorum...')
 		for member in self.quorum:
 			try:
-				Pyro5.api.Proxy(member).notify(message)
+				print(f'notificando V{i}')
+				i += 1
+				Pyro5.api.Proxy(member).notify()
 			except Exception as e:
 				print(f'{e}')
+		print('Terminado as notificações')
 
 if __name__ == "__main__":
     lider = BrokerLider()
