@@ -33,9 +33,13 @@ class Publisher(object):
 		if message == 'exit':
 			self.cleanup()
 		else:
-			print(f'Request to publish \'{message}\'...')
-			Pyro5.api.Proxy(self.lider_uri).publish(self.uri, f'{message}')
-			print(f'Waiting committed/uncommitted...')
+			try:
+				print(f'Request to publish \'{message}\'...')
+				Pyro5.api.Proxy(self.lider_uri).publish(self.uri, f'{message}')
+				print(f'Waiting committed/uncommitted...')
+			except Exception as e:
+				print(f'Exception: {e}')
+				sys.exit(1)
 
 	@Pyro5.api.expose
 	@Pyro5.api.oneway

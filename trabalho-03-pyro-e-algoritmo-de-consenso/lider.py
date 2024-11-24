@@ -1,7 +1,7 @@
 import Pyro5.api
 import sys
 
-class BrokerLider( object ):
+class BrokerLeader( object ):
 
 	name = 'Lider_Epoca1'
 	log = []
@@ -48,36 +48,35 @@ class BrokerLider( object ):
 
 	@Pyro5.api.expose
 	@Pyro5.api.oneway
-	@Pyro5.api.callback
 	def publish(self, publisher_uri, message):
 		self.log.append(message)
-		print(f'log += {message}')
-		self.notify_all_quorum()
-		# total_votes = self.notify_all_quorum()
-		# if total_votes > quorum/2
-		Pyro5.api.Proxy(publisher_uri).uncommitted(message)
-		# else
-		# 		client.commit
+		print(f'log = {self.log}')
+		total_votes = self.notify_all_quorum()
+		if total_votes > len(self.quorum) / 2:
+			Pyro5.api.Proxy(publisher_uri).committed(message)
+		else:
+			Pyro5.api.Proxy(publisher_uri).uncommitted(message)
 	
 	@Pyro5.api.expose
-	@Pyro5.api.callback
 	def fetch(self, offset):
 		data = self.log[offset:]
-		print(f'Buscado: {data}')
+		print(f'Fetched: {data}')
 		return data
 	
 	def notify_all_quorum(self):
-		i = 1
-		print('Notificando quorum...')
-		for member in self.quorum:
+		total_votes = 0
+		for index, member in enumerate(self.quorum):
 			try:
-				print(f'notificando V{i}')
-				i += 1
+				print(f'Notifying V{index}...')
 				Pyro5.api.Proxy(member).notify()
+				total_votes += 1
+			except Pyro5.errors.CommunicationError as e:
+				print(f'V{index} communication fail!')
 			except Exception as e:
 				print(f'{e}')
-		print('Terminado as notificações')
+		print('Notifications completed!')
+		return total_votes
 
 if __name__ == "__main__":
-    lider = BrokerLider()
-    lider.run()
+    leader = BrokerLeader()
+    leader.run()
