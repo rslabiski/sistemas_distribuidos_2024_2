@@ -52,6 +52,9 @@ class BrokerVoterObserver(object):
 		except Exception as e:
 			print(f'Exception: {e}')
 
-if __name__ == "__main__":
-    broker = BrokerVoterObserver('v')
-    broker.run()
+	@Pyro5.api.expose
+	def commit_request(self):
+		return True
+
+broker = BrokerVoterObserver(sys.argv[1])
+broker.run()

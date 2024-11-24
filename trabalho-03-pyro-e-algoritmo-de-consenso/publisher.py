@@ -39,7 +39,7 @@ class Publisher(object):
 				print(f'Waiting committed/uncommitted...')
 			except Exception as e:
 				print(f'Exception: {e}')
-				sys.exit(1)
+				self.cleanup()
 
 	@Pyro5.api.expose
 	@Pyro5.api.oneway

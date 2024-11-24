@@ -49,12 +49,15 @@ class BrokerLeader( object ):
 	@Pyro5.api.expose
 	@Pyro5.api.oneway
 	def publish(self, publisher_uri, message):
-		self.log.append(message)
-		print(f'log = {self.log}')
-		total_votes = self.notify_all_quorum()
+		total_votes = self.request_commit_all_quorum()
 		if total_votes > len(self.quorum) / 2:
+			self.log.append(message)
+			print(f'\'{message}\' committed!')
+			print(f'log = {self.log}')
+			self.notify_all_quorum()
 			Pyro5.api.Proxy(publisher_uri).committed(message)
 		else:
+			print(f'\'{message}\' uncommited!')
 			Pyro5.api.Proxy(publisher_uri).uncommitted(message)
 	
 	@Pyro5.api.expose
@@ -64,18 +67,29 @@ class BrokerLeader( object ):
 		return data
 	
 	def notify_all_quorum(self):
-		total_votes = 0
 		for index, member in enumerate(self.quorum):
 			try:
 				print(f'Notifying V{index}...')
 				Pyro5.api.Proxy(member).notify()
-				total_votes += 1
 			except Pyro5.errors.CommunicationError as e:
 				print(f'V{index} communication fail!')
 			except Exception as e:
 				print(f'{e}')
 		print('Notifications completed!')
-		return total_votes
+	
+	def request_commit_all_quorum(self):
+		total_commits = 0
+		for index, member in enumerate(self.quorum):
+			try:
+				print(f'Requesting V{index} commit...')
+				if Pyro5.api.Proxy(member).commit_request():
+					total_commits += 1
+			except Pyro5.errors.CommunicationError as e:
+				print(f'V{index} communication fail!')
+			except Exception as e:
+				print(f'{e}')
+		print(f'Total commits: {total_commits}')
+		return total_commits
 
 if __name__ == "__main__":
     leader = BrokerLeader()
