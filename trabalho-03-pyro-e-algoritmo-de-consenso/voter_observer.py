@@ -1,4 +1,4 @@
-import Pyro5.api
+from Pyro5.api import *
 import sys
 
 brokers_type = ['o', 'v']
@@ -15,13 +15,13 @@ class BrokerVoterObserver(object):
 
 	def __init__(self, state):
 		try:
-			self.daemon = Pyro5.server.Daemon()				# cria um deamon Pyro
-			self.uri = self.daemon.register(self)			# cria um URI para o deamon Pyro
+			self.daemon = Daemon()
+			self.uri = self.daemon.register(self)
 			print('Searching name server...')
-			name_server = Pyro5.api.locate_ns()				# localiza o servidor de nomes
-			self.leader_uri = name_server.lookup('Lider_Epoca1')	# localiza o URI do lider
+			name_server = locate_ns()
+			self.leader_uri = name_server.lookup('Lider_Epoca1')
 			self.state = state
-			Pyro5.api.Proxy(self.leader_uri).register_member(self.uri, self.state)
+			Proxy(self.leader_uri).register_member(self.uri, self.state)
 			print(f'Broker {self.state} URI: {self.uri} running...')
 
 		except Exception as e:
@@ -31,7 +31,7 @@ class BrokerVoterObserver(object):
 	def run(self):
 		try:
 			print('Press Ctrl+C to shut down.')
-			self.daemon.requestLoop()  # inicia o loop de requisições
+			self.daemon.requestLoop()
 		finally:
 			self.cleanup()
 
@@ -39,12 +39,12 @@ class BrokerVoterObserver(object):
 		print("Shutting down...")
 		self.daemon.shutdown()
 
-	@Pyro5.api.expose
-	@Pyro5.api.oneway
+	@expose
+	@oneway
 	def notify(self):
 		try:
 			print(f'Notified! Fetching...')
-			data = Pyro5.api.Proxy(self.leader_uri).fetch(len(self.log))
+			data = Proxy(self.leader_uri).fetch(len(self.log))
 			print(f'Received: {data}')
 			for item in data:
 				self.log.append(item)
@@ -52,7 +52,7 @@ class BrokerVoterObserver(object):
 		except Exception as e:
 			print(f'Exception: {e}')
 
-	@Pyro5.api.expose
+	@expose
 	def commit_request(self):
 		return True
 

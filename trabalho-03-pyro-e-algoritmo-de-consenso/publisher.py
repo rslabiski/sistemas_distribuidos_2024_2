@@ -1,16 +1,16 @@
-import Pyro5.api
+from Pyro5.api import *
 import sys
 
 class Publisher(object):
 
 	def __init__(self):
 		try:
-			self.daemon = Pyro5.server.Daemon()				# cria um deamon Pyro
-			self.uri = self.daemon.register(self)			# cria um URI para o deamon Pyro
+			self.daemon = Daemon()
+			self.uri = self.daemon.register(self)
 			print(f'URI: {self.uri}')
 			print('Searching name server...')
-			name_server = Pyro5.api.locate_ns()			# localiza o servidor de nomes
-			self.lider_uri = name_server.lookup('Lider_Epoca1') # localiza o URI do lider
+			name_server = locate_ns()
+			self.lider_uri = name_server.lookup('Lider_Epoca1')
 
 		except Exception as e:
 			print(f'Exception: {e}')
@@ -35,20 +35,20 @@ class Publisher(object):
 		else:
 			try:
 				print(f'Request to publish \'{message}\'...')
-				Pyro5.api.Proxy(self.lider_uri).publish(self.uri, f'{message}')
+				Proxy(self.lider_uri).publish(self.uri, f'{message}')
 				print(f'Waiting committed/uncommitted...')
 			except Exception as e:
 				print(f'Exception: {e}')
 				self.cleanup()
 
-	@Pyro5.api.expose
-	@Pyro5.api.oneway
+	@expose
+	@oneway
 	def committed(self, message):
 		print(f'\'{message}\' committed!')
 		self.next_publish()
 
-	@Pyro5.api.expose
-	@Pyro5.api.oneway
+	@expose
+	@oneway
 	def uncommitted(self, message):
 		print(f'\'{message}\' uncommitted!')
 		self.next_publish()

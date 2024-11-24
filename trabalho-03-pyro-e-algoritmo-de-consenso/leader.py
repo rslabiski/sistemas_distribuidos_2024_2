@@ -1,20 +1,21 @@
-import Pyro5.api
+from Pyro5.api import *
+import Pyro5.errors
 import sys
 
 class BrokerLeader( object ):
 
 	name = 'Lider_Epoca1'
 	log = []
-	quorum = [] # lista com os membros do quórum (URI: Proxy)
-	observers = [] # lista com os membros observadores (URI: Proxy)
+	quorum = [] # lista com os membros do quórum (URI)
+	observers = [] # lista com os membros observadores (URI)
 
 	def __init__(self):
 		try:
-			self.daemon = Pyro5.server.Daemon()
-			self.uri = self.daemon.register(self)  # registra a instância da classe
+			self.daemon = Daemon()
+			self.uri = self.daemon.register(self)
 			print('Searching name server...')
-			self.name_server = Pyro5.api.locate_ns()  # localiza o servidor de nomes
-			self.name_server.register(self.name, self.uri)  # registra o líder no servidor de nomes
+			self.name_server = locate_ns()
+			self.name_server.register(self.name, self.uri)
 			print(f'Leader URI: {self.uri}')
 		except Exception as e:
 			print(f'Exception: {e}')
@@ -23,7 +24,7 @@ class BrokerLeader( object ):
 	def run(self):
 		try:
 			print('Press Ctrl+C to shut down.')
-			self.daemon.requestLoop()  # inicia o loop de requisições
+			self.daemon.requestLoop()
 		finally:
 			self.cleanup()
 
@@ -35,7 +36,7 @@ class BrokerLeader( object ):
 			pass
 		self.daemon.shutdown()
 
-	@Pyro5.api.expose
+	@expose
 	def register_member(self, URI, state):
 		if state == 'v':
 			self.quorum.append(URI)
@@ -46,21 +47,23 @@ class BrokerLeader( object ):
 		else:
 			print('State unknown!')
 
-	@Pyro5.api.expose
-	@Pyro5.api.oneway
+	@expose
+	@oneway
 	def publish(self, publisher_uri, message):
-		total_votes = self.request_commit_all_quorum()
-		if total_votes > len(self.quorum) / 2:
+		print(f'Commit request: \'{message}\'')
+		total_commits = 1 + self.request_commit_all_quorum()
+		print(f'Total commits: {total_commits}')
+		if total_commits > len(self.quorum) / 2:
 			self.log.append(message)
 			print(f'\'{message}\' committed!')
 			print(f'log = {self.log}')
 			self.notify_all_quorum()
-			Pyro5.api.Proxy(publisher_uri).committed(message)
+			Proxy(publisher_uri).committed(message)
 		else:
-			print(f'\'{message}\' uncommited!')
-			Pyro5.api.Proxy(publisher_uri).uncommitted(message)
+			print(f'\'{message}\' uncommitted!')
+			Proxy(publisher_uri).uncommitted(message)
 	
-	@Pyro5.api.expose
+	@expose
 	def fetch(self, offset):
 		data = self.log[offset:]
 		print(f'Fetched: {data}')
@@ -70,7 +73,7 @@ class BrokerLeader( object ):
 		for index, member in enumerate(self.quorum):
 			try:
 				print(f'Notifying V{index}...')
-				Pyro5.api.Proxy(member).notify()
+				Proxy(member).notify()
 			except Pyro5.errors.CommunicationError as e:
 				print(f'V{index} communication fail!')
 			except Exception as e:
@@ -82,15 +85,13 @@ class BrokerLeader( object ):
 		for index, member in enumerate(self.quorum):
 			try:
 				print(f'Requesting V{index} commit...')
-				if Pyro5.api.Proxy(member).commit_request():
+				if Proxy(member).commit_request():
 					total_commits += 1
 			except Pyro5.errors.CommunicationError as e:
 				print(f'V{index} communication fail!')
 			except Exception as e:
 				print(f'{e}')
-		print(f'Total commits: {total_commits}')
 		return total_commits
 
-if __name__ == "__main__":
-    leader = BrokerLeader()
-    leader.run()
+leader = BrokerLeader()
+leader.run()
