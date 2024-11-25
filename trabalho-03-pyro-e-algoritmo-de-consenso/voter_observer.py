@@ -4,6 +4,7 @@ import time
 import threading
 
 brokers_type = ['o', 'v']
+URI_size = 15
 
 if len(sys.argv) != 2 or sys.argv[1] not in brokers_type:
 	sys.stderr.write(f'Usage: {sys.argv[0]} [v,o]\n')
@@ -34,7 +35,7 @@ class BrokerVoterObserver(object):
 			self.leader_uri = name_server.lookup('Lider_Epoca1')
 			self.state = state
 			Proxy(self.leader_uri).register_member(self.uri, self.state)
-			print(f'Broker {self.state} URI: {self.uri} running...')
+			print(f'({self.state}) URI: {str(self.uri)[:URI_size]} running...')
 
 		except Exception as e:
 			print(f'Error: {e}')
@@ -64,7 +65,7 @@ class BrokerVoterObserver(object):
 
 	def pulse(self):
 		try:
-			print('pulse')
+			print(f'{str(self.uri)[:URI_size]} pulse')
 			Proxy(self.leader_uri).beat(self.uri)
 		except Exception as e:
 			print(f'Pulse exception: {e}')
@@ -74,7 +75,7 @@ class BrokerVoterObserver(object):
 	@oneway
 	def notify(self):
 		try:
-			print(f'Notified! Fetching...')
+			print(f'{str(self.uri)[:URI_size]} Notified! Fetching...')
 			data = Proxy(self.leader_uri).fetch(len(self.log))
 			print(f'Received: {data}')
 			for item in data:

@@ -5,6 +5,7 @@ import sys
 import threading
 
 stop_event = threading.Event()
+URI_size = 15
 
 def check_heart_beat(server):
 	print('Check Heart beat thread running...')
@@ -25,7 +26,7 @@ class BrokerLeader( object ):
 			self.heart_beat_timeout = float(5)
 			self.daemon = Daemon()
 			self.uri = self.daemon.register(self)
-			print(f'Leader URI: {self.uri}')
+			print(f'Leader URI: {str(self.uri)[:URI_size]}')
 			print('Searching name server...')
 			self.name_server = locate_ns()
 			self.name_server.register(self.name, self.uri)
@@ -56,10 +57,10 @@ class BrokerLeader( object ):
 	def register_member(self, URI, state):
 		if state == 'v':
 			self.quorum[URI] = time.time()
-			print(f'{URI}: registered in quorum!')
+			print(f'{str(URI)[:URI_size]}: registered in quorum!')
 		elif state == 'o':
 			self.observers.append(URI)
-			print(f'{URI}: registered in observer!')
+			print(f'{str(URI)[:URI_size]}: registered in observer!')
 		else:
 			print('State unknown!')
 
@@ -72,14 +73,14 @@ class BrokerLeader( object ):
 	def check_quorum_heart_beat(self):
 		print('Checking heart beat timeout...')
 		members_to_remove = []
-		for index, (member, value) in enumerate(self.quorum.items()):
+		for member, value in self.quorum.items():
 			dt = time.time() - value
 			if dt > self.heart_beat_timeout:
 				members_to_remove.append(member)
-				print(f'V{index} timeout!')
+				print(f'{str(member)[:URI_size]} timeout!')
 		# precisa remover no final para nao ocorrer problema no loop do dicionario
 		for member in members_to_remove:
-			print(f'URI {member} removed.')
+			print(f'{str(member)[:URI_size]} removed.')
 			self.quorum.pop(member)
 		
 		# verifica promover observers
@@ -88,7 +89,7 @@ class BrokerLeader( object ):
 			self.quorum[new_member] = time.time()
 			Proxy(new_member).set_state('v')
 			Proxy(new_member).notify()
-			print(f'Observer {str(new_member)[:15]} promoted.')
+			print(f'{str(new_member)[:URI_size]} promoted to Voter.')
 
 	@expose
 	@oneway
@@ -113,25 +114,25 @@ class BrokerLeader( object ):
 		return data
 	
 	def notify_all_quorum(self):
-		for index, (member, value) in enumerate(self.quorum.items()):
+		for member, value in self.quorum.items():
 			try:
-				print(f'Notifying V{index}...')
+				print(f'Notifying {str(member)[:URI_size]}...')
 				Proxy(member).notify()
 			except Pyro5.errors.CommunicationError as e:
-				print(f'V{index} communication fail!')
+				print(f'{str(member)[:URI_size]} communication fail!')
 			except Exception as e:
 				print(f'{e}')
 		print('Notifications completed!')
 	
 	def request_commit_all_quorum(self):
 		total_commits = 0
-		for index, (member, value) in enumerate(self.quorum.items()):
+		for member, value in self.quorum.items():
 			try:
-				print(f'Requesting V{index} commit...')
+				print(f'Requesting {str(member)[:URI_size]} commit...')
 				if Proxy(member).commit_request():
 					total_commits += 1
 			except Pyro5.errors.CommunicationError as e:
-				print(f'V{index} communication fail!')
+				print(f'{str(member)[:URI_size]} communication fail!')
 			except Exception as e:
 				print(f'{e}')
 		return total_commits

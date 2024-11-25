@@ -1,13 +1,15 @@
 from Pyro5.api import *
 import sys
 
+URI_size = 15
+
 class Publisher(object):
 
 	def __init__(self):
 		try:
 			self.daemon = Daemon()
 			self.uri = self.daemon.register(self)
-			print(f'URI: {self.uri}')
+			print(f'URI: {str(self.uri)[:URI_size]}')
 			print('Searching name server...')
 			name_server = locate_ns()
 			self.lider_uri = name_server.lookup('Lider_Epoca1')
