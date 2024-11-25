@@ -1,12 +1,13 @@
 from Pyro5.api import *
 import Pyro5.errors
+import time
 import sys
 
 class BrokerLeader( object ):
 
 	name = 'Lider_Epoca1'
 	log = []
-	quorum = [] # lista com os membros do quórum (URI)
+	quorum = {} # dicionario com os membros do quórum (URI: tempo-do-ultimo-pulso)
 	observers = [] # lista com os membros observadores (URI)
 
 	def __init__(self):
@@ -39,7 +40,7 @@ class BrokerLeader( object ):
 	@expose
 	def register_member(self, URI, state):
 		if state == 'v':
-			self.quorum.append(URI)
+			self.quorum[URI] = time.time()
 			print(f'{URI}: registered in quorum!')
 		elif state == 'o':
 			self.observers.append(URI)
@@ -70,7 +71,7 @@ class BrokerLeader( object ):
 		return data
 	
 	def notify_all_quorum(self):
-		for index, member in enumerate(self.quorum):
+		for index, (member, value) in enumerate(self.quorum.items()):
 			try:
 				print(f'Notifying V{index}...')
 				Proxy(member).notify()
@@ -82,7 +83,7 @@ class BrokerLeader( object ):
 	
 	def request_commit_all_quorum(self):
 		total_commits = 0
-		for index, member in enumerate(self.quorum):
+		for index, (member, value) in enumerate(self.quorum.items()):
 			try:
 				print(f'Requesting V{index} commit...')
 				if Proxy(member).commit_request():
