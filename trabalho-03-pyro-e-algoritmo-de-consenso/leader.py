@@ -2,6 +2,7 @@ from Pyro5.api import *
 import Pyro5.errors
 import time
 import sys
+import threading
 
 class BrokerLeader( object ):
 
@@ -47,6 +48,16 @@ class BrokerLeader( object ):
 			print(f'{URI}: registered in observer!')
 		else:
 			print('State unknown!')
+
+	@expose
+	@oneway
+	def beat(self, URI):
+		self.quorum[URI] = time.time()
+		for index, (key, value) in enumerate(self.quorum.items()):
+			if URI == key:
+				print(f'V{index} -: {value:.4f}')
+			else:
+				print(f'V{index}  : {value:.4f}')
 
 	@expose
 	@oneway

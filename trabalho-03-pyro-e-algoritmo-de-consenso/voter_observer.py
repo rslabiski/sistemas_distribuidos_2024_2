@@ -1,11 +1,22 @@
 from Pyro5.api import *
 import sys
+import time
+import threading
 
 brokers_type = ['o', 'v']
 
 if len(sys.argv) != 2 or sys.argv[1] not in brokers_type:
 	sys.stderr.write(f'Usage: {sys.argv[0]} [v,o]\n')
 	sys.exit(1)
+
+stop_event = threading.Event()
+
+def heart_beat(client):
+	print('Heartbeat thread running...')
+	while not stop_event.is_set():
+		client.pulse()
+		time.sleep(client.beat_time)
+	print('Heartbeat thread finished.')
 
 class BrokerVoterObserver(object):
 
@@ -15,6 +26,7 @@ class BrokerVoterObserver(object):
 
 	def __init__(self, state):
 		try:
+			self.beat_time = float(2)
 			self.daemon = Daemon()
 			self.uri = self.daemon.register(self)
 			print('Searching name server...')
@@ -30,6 +42,7 @@ class BrokerVoterObserver(object):
 
 	def run(self):
 		try:
+			self.set_state(self.state)
 			print('Press Ctrl+C to shut down.')
 			self.daemon.requestLoop()
 		finally:
@@ -37,7 +50,25 @@ class BrokerVoterObserver(object):
 
 	def cleanup(self):
 		print("Shutting down...")
+		stop_event.set()  # Sinaliza para a thread encerrar
 		self.daemon.shutdown()
+		sys.exit(0)
+
+	@expose
+	@oneway
+	def set_state(self, state):
+		if state == 'v':
+			print('Starting heartbeat thread...')
+			self.pulse_thread = threading.Thread(target=heart_beat, args=(self,))
+			self.pulse_thread.start()
+
+	def pulse(self):
+		try:
+			print('pulse')
+			Proxy(self.leader_uri).beat(self.uri)
+		except Exception as e:
+			print(f'Pulse exception: {e}')
+			self.cleanup()
 
 	@expose
 	@oneway
