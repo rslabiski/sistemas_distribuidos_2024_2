@@ -106,6 +106,16 @@ class BrokerLeader( object ):
 		else:
 			print(f'\'{message}\' uncommitted!')
 			Proxy(publisher_uri).uncommitted(message)
+
+	@expose
+	def get_message(self, offset):
+		if len(self.log) == 0:
+			return None
+		if offset > len(self.log):
+			offset = len(self.log)
+		data = self.log[-offset:]
+		print(f'Requested: {data}')
+		return data
 	
 	@expose
 	def fetch(self, offset):
