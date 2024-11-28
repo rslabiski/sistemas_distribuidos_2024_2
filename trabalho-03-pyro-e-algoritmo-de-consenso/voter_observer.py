@@ -23,7 +23,8 @@ class BrokerVoterObserver(object):
 
 	state = None
 	leader_uri = None
-	log = []
+	log_uncomitted = []
+	log_comitted = []
 
 	def __init__(self, state):
 		try:
@@ -62,7 +63,11 @@ class BrokerVoterObserver(object):
 			print('Starting heartbeat thread...')
 			self.pulse_thread = threading.Thread(target=heart_beat, args=(self,))
 			self.pulse_thread.start()
-
+			data = Proxy(self.leader_uri).get_message(0)
+			self.log_uncomitted = data
+			self.log_comitted = self.log_uncomitted
+	
+	
 	def pulse(self):
 		try:
 			print(f'{str(self.uri)[:URI_size]} pulse')
@@ -73,20 +78,24 @@ class BrokerVoterObserver(object):
 
 	@expose
 	@oneway
+	def commit(self):
+		self.log_comitted = self.log_uncomitted
+		print(f'log_committed: {self.log_comitted}')
+
+	@expose
 	def notify(self):
 		try:
 			print(f'{str(self.uri)[:URI_size]} Notified! Fetching...')
-			data = Proxy(self.leader_uri).fetch(len(self.log))
+			data = Proxy(self.leader_uri).fetch(len(self.log_uncomitted))
 			print(f'Received: {data}')
 			for item in data:
-				self.log.append(item)
-			print(f'log = {self.log}')
+				self.log_uncomitted.append(item)
+			print(f'log_uncomitted = {self.log_uncomitted}')
+			return True
 		except Exception as e:
 			print(f'Exception: {e}')
-
-	@expose
-	def commit_request(self):
-		return True
+			return False
+	
 
 broker = BrokerVoterObserver(sys.argv[1])
 broker.run()

@@ -17,7 +17,8 @@ def check_heart_beat(server):
 class BrokerLeader( object ):
 
 	name = 'Lider_Epoca1'
-	log = []
+	log_committed = []
+	log_uncomitted = []
 	quorum = {} # dicionario com os membros do quórum (URI: tempo-do-ultimo-pulso)
 	observers = [] # lista com os membros observadores (URI)
 
@@ -88,20 +89,22 @@ class BrokerLeader( object ):
 			new_member = self.observers.pop()
 			self.quorum[new_member] = time.time()
 			Proxy(new_member).set_state('v')
-			Proxy(new_member).notify()
+
+				
 			print(f'{str(new_member)[:URI_size]} promoted to Voter.')
 
 	@expose
 	@oneway
 	def publish(self, publisher_uri, message):
 		print(f'Commit request: \'{message}\'')
-		total_commits = 1 + self.request_commit_all_quorum()
+		self.log_uncomitted.append(message)
+		total_commits = 1 + self.notify_all_quorum()
 		print(f'Total commits: {total_commits}')
 		if total_commits > len(self.quorum) / 2:
-			self.log.append(message)
+			self.log_committed = self.log_uncomitted
 			print(f'\'{message}\' committed!')
-			print(f'log = {self.log}')
-			self.notify_all_quorum()
+			print(f'log_comitted = {self.log_committed}')
+			self.commit_all_quorum()
 			Proxy(publisher_uri).committed(message)
 		else:
 			print(f'\'{message}\' uncommitted!')
@@ -109,37 +112,33 @@ class BrokerLeader( object ):
 
 	@expose
 	def get_message(self, offset):
-		if len(self.log) == 0:
-			return None
-		if offset > len(self.log):
-			offset = len(self.log)
-		data = self.log[-offset:]
+		data = self.log_committed[offset:]
 		print(f'Requested: {data}')
 		return data
 	
 	@expose
 	def fetch(self, offset):
-		data = self.log[offset:]
+		data = self.log_uncomitted[offset:]
 		print(f'Fetched: {data}')
 		return data
 	
-	def notify_all_quorum(self):
+	def commit_all_quorum(self):
 		for member, value in self.quorum.items():
 			try:
-				print(f'Notifying {str(member)[:URI_size]}...')
-				Proxy(member).notify()
+				print(f'Comitting {str(member)[:URI_size]}...')
+				Proxy(member).commit()
 			except Pyro5.errors.CommunicationError as e:
 				print(f'{str(member)[:URI_size]} communication fail!')
 			except Exception as e:
 				print(f'{e}')
-		print('Notifications completed!')
+		print('Commit completed!')
 	
-	def request_commit_all_quorum(self):
+	def notify_all_quorum(self):
 		total_commits = 0
 		for member, value in self.quorum.items():
 			try:
-				print(f'Requesting {str(member)[:URI_size]} commit...')
-				if Proxy(member).commit_request():
+				print(f'Notifying {str(member)[:URI_size]}...')
+				if Proxy(member).notify():
 					total_commits += 1
 			except Pyro5.errors.CommunicationError as e:
 				print(f'{str(member)[:URI_size]} communication fail!')
