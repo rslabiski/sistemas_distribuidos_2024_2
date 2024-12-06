@@ -36,17 +36,20 @@ Microsserviço Principal
   - realizar pedidos
   - excluir pedidos
   - consultar pedidos.
-- Cada novo pedido recebido será publicado (publisher) como um evento no tópico `Pedidos_Criados`
-- Consumirá eventos (subscriber) dos tópicos `Pagamentos_Aprovados`, `Pagamentos_Reprovados` e `Pedidos_Enviados` para atualizar o status de cada Pedido.
+- Cada novo pedido recebido será publicado (publisher) como um evento no tópico `Pedidos_Criados`, cujas mensagens serão consumidas pelos microsserviços Estoque e Pagamento.
+- Consumirá eventos (subscriber) dos tópicos `Pagamentos_Aprovados`, `Pagamentos_Recusados` e `Pedidos_Enviados` para atualizar o status de cada Pedido.
 - `!` O principal usa o rest_get para o Estoque para visualizar os produtos disponíveis
+- Quando um cliente excluir um pedido, o Principal publicará no tópico `Pedidos_Excluídos`.
+- Quando o pagamento de um pedido for recusado, o Principal publicará no tópico `Pedidos_Excluídos`.
 
-Microsserviço Estoque
+
+Microsserviço `Estoque`
 - Gerencia o estoque de produtos.
-- Ele consumirá eventos do tópico `Pedidos_Criados`.
+- Ele consumirá eventos do tópico `Pedidos_Criados` e `Pedidos_Excluídos`.
 - Quando um pedido for criado, atualizar o estoque.
 - Quando um pedido for excluído, atualizar o estoque.
 - Quando um pagamento for recusado, atualizar o estoque.
-- Responde requisições REST ou gRPC do microsserviço Principal para obter dados dos produtos em estoque.
+- Responde requisições REST ou gRPC do microsserviço Principal, enviando dados dos produtos em estoque.
 
 Microsserviço Pagamento:
 - Gerencia os pagamentos através da integração com um sistema externo de pagamento via Webhook.
@@ -89,7 +92,7 @@ Tópico Pagamentos_Aprovados
 - Publishers:
   - Pagamento
 
-Tópico Pagamentos_Reprovados
+Tópico Pagamentos_Recusados
 - Subscribers:
   - Principal
   - Notificação
@@ -102,6 +105,13 @@ Tópico Pedidos_Enviados
   - Notificação
 - Publishers:
   - Entrega
+
+Tópico Pedidos_Excluídos
+- Subscribers:
+  - Notificação
+  - Estoque
+- Publishers:
+  - Principal
 
 ## Sistema de Pagamento
 
