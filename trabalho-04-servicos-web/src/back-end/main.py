@@ -58,25 +58,18 @@ def run_consumer():
 		channel = connection.channel()
 		channel.exchange_declare(exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE)
 
-		# Criar uma fila exclusiva para consumo
-		result = channel.queue_declare('', exclusive=True)
-		queue_name = result.method.queue
-
 		# Vincular a fila e configurar consumidores específicos
+		queue_name = channel.queue_declare('', exclusive=True).method.queue
 		channel.queue_bind(exchange=EXCHANGE, queue=queue_name, routing_key=PAGAMENTOS_APROVADOS)
 		channel.basic_consume(queue=queue_name, on_message_callback=approved_payment, auto_ack=True)
 
+		queue_name = channel.queue_declare('', exclusive=True).method.queue
 		channel.queue_bind(exchange=EXCHANGE, queue=queue_name, routing_key=PAGAMENTOS_RECUSADOS)
 		channel.basic_consume(queue=queue_name, on_message_callback=declined_payment, auto_ack=True)
 
+		queue_name = channel.queue_declare('', exclusive=True).method.queue
 		channel.queue_bind(exchange=EXCHANGE, queue=queue_name, routing_key=PEDIDOS_ENVIADOS)
 		channel.basic_consume(queue=queue_name, on_message_callback=delivered, auto_ack=True)
-
-		# order_id = 10
-		# channel.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_CRIADOS, body=order_id)
-
-		# order_id = 20
-		# channel.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_EXCLUIDOS, body=order_id)
 
 		print('[x] Waiting for messages. To exit press CTRL+C')	
 		channel.start_consuming()
@@ -112,4 +105,4 @@ def create_order():
 if __name__ == '__main__':
 	# Criar um thread para o consumir eventos dos tópicos do Rabbit
 	threading.Thread(target=run_consumer, daemon=True).start()
-	app.run()
+	app.run(host=HOST, port=PORT_MAIN)

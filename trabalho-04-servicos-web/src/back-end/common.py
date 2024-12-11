@@ -1,5 +1,6 @@
 # Tópicos
 HOST = 'localhost'
+PORT_MAIN = 5000
 EXCHANGE = 'data'
 EXCHANGE_TYPE = 'topic'
 
