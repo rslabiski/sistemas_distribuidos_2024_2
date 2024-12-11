@@ -110,6 +110,6 @@ def create_order():
 	return jsonify(order_id), 201
 
 if __name__ == '__main__':
-	# Criar um thread para o consumidor que ficará aguardando respostas no tópico2
+	# Criar um thread para o consumir eventos dos tópicos do Rabbit
 	threading.Thread(target=run_consumer, daemon=True).start()
-	app.run(debug=True)
+	app.run()
