@@ -1,4 +1,3 @@
-# Tópicos
 HOST = 'localhost'
 PORT_MAIN = 5000
 EXCHANGE = 'data'
