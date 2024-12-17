@@ -54,6 +54,10 @@ def declined_payment(ch, method, properties, body):
 		print(f'[i] Processing declined payment for order ID {order_id}')
 		time.sleep(2)
 		set_order_status(order_id, 'payment-refused')
+		connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST))
+		channel = connection.channel()
+		channel.exchange_declare(exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE)
+		channel.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_EXCLUIDOS, body=json.dumps(order))
 	except Exception as e:
 		print(f'[!] Error processing declined payment: {e}')
 

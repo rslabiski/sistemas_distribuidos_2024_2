@@ -19,12 +19,12 @@ def approved_payment(ch, method, properties, body):
 	try:
 		order = json.loads(body)
 		order_id = order['order_id']
-		print(f'[x] Order ID {order_id} issuing note...')
+		print(f'[i] Order ID {order_id} issuing note...')
 		time.sleep(2)
-		print(f'[x] Note issued! Delivering...')
+		print(f'[i] Note issued! Delivering...')
 		time.sleep(2)
 		ch.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_ENVIADOS, body=json.dumps(order))
-		print(f'[x] Order ID {order_id} Delivered!')
+		print(f'[i] Order ID {order_id} Delivered!')
 	except Exception as e:
 		print(f'Exception: {e}')
 
@@ -32,7 +32,7 @@ def callback_finish(signal, frame):
 	try:
 		if connection.is_open:
 			connection.close() 
-			print(f'Connection closed\n')
+			print(f'[i] Connection closed\n')
 	except Exception:
 		pass # descarta erros de fechamento de conexão
 	sys.exit(0)

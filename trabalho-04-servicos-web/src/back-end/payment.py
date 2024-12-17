@@ -21,8 +21,7 @@ def order_created(ch, method, properties, body):
 	try:
 		order = json.loads(body)
 		order_id = order['order_id']
-		print(f'[i] Checking payment Order ID {order_id}...')
-		approved = input('Aprove? s/n: ')
+		approved = input(f'[?] Aprove Order ID {order_id}? s/n: ')
 		print(f'[i] Processing...')
 		time.sleep(1)
 		if approved.lower() == 's':
@@ -39,7 +38,7 @@ def callback_finish(signal, frame):
 	try:
 		if connection.is_open:
 			connection.close() 
-			print(f'Connection closed\n')
+			print(f'[i] Connection closed\n')
 	except Exception:
 		pass # descarta erros de fechamento de conexão
 	sys.exit(0)

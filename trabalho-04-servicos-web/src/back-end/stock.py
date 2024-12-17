@@ -31,20 +31,21 @@ stock_list.append({'id':4, 'description':'tomate'	,'cost':14.00, 'amount': 100})
 stock_list.append({'id':5, 'description':'abacate'	,'cost':15.00, 'amount': 100})
 
 def print_stock():
-	print('Stock:')
+	print('[i] Stock:')
 	for item in stock_list:
-		print(f"{item['amount']} {item['description']}")
+		print(f"\t{item['amount']} {item['description']}")
 
 def order_created(ch, method, properties, body):
 	try:
 		order = json.loads(body)
-		print(f'[i] Order created!')
-		time.sleep(1)
-		print(f'[i] Payload: {order}')
+		order_id = order['order_id']
+		print(f'[i] Order ID {order_id} created!')
 		time.sleep(1)
 		print(f'[i] Updating stock... (removendo elementos)')
-		time.sleep(1)
-		print(f'[i] Stock updated!')
+		items = order['items']
+		for item in items:
+			item_id = item['id']
+			stock_list[item_id]['amount'] = stock_list[item_id]['amount'] - item['amount']
 		print_stock()
 	except Exception as e:
 		print(f'Exception: {e}')
@@ -53,13 +54,14 @@ def order_created(ch, method, properties, body):
 def order_deleted(ch, method, properties, body):
 	try:
 		order = json.loads(body)
-		print(f'[i] Order deleted!')
-		time.sleep(1)
-		print(f'[i] Payload: {order}')
+		order_id = order['order_id']
+		print(f'[i] Order ID {order_id} deleted!')
 		time.sleep(1)
 		print(f'[i] Updating stock... (retornando os elementos)')
-		time.sleep(1)
-		print(f'[i] Stock updated!')
+		items = order['items']
+		for item in items:
+			item_id = item['id']
+			stock_list[item_id]['amount'] = stock_list[item_id]['amount'] + item['amount']
 		print_stock()
 	except Exception as e:
 		print(f'Exception: {e}')
