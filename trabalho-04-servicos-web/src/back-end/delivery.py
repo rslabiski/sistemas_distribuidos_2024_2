@@ -1,39 +1,46 @@
 '''
 Microsserviço `Entrega`
 
-- Gerencia:
+- O que faz:
   - emissão de notas
-  - entrega dos produtos
-- Consome eventos do tópico `Pagamentos_Aprovados`
-- Publica no tópico `Pedidos_Enviados`
+  - gerencia a entrega dos produtos
+- Escuta em `Pagamentos_Aprovados`
+- Publica em `Pedidos_Enviados`
 '''
 
 import pika
 import sys
 import signal
+import json
+import time
 from common import *
 
 def approved_payment(ch, method, properties, body):
-    try:
-        order_id = str(10)
-        print(f'[x] Payment order id {order_id} approved! Delivering...')
-        ch.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_ENVIADOS, body = order_id)
-    except Exception as e:
-        print(f'Exception: {e}')
+	try:
+		order = json.loads(body)
+		order_id = order['order_id']
+		print(f'[x] Order ID {order_id} issuing note...')
+		time.sleep(2)
+		print(f'[x] Note issued! Delivering...')
+		time.sleep(2)
+		ch.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_ENVIADOS, body=json.dumps(order))
+		print(f'[x] Order ID {order_id} Delivered!')
+	except Exception as e:
+		print(f'Exception: {e}')
 
 def callback_finish(signal, frame):
-    try:
-        if connection.is_open:
-            connection.close() 
-            print(f'Connection closed\n')
-    except Exception:
-        pass # descarta erros de fechamento de conexão
-    sys.exit(0)
+	try:
+		if connection.is_open:
+			connection.close() 
+			print(f'Connection closed\n')
+	except Exception:
+		pass # descarta erros de fechamento de conexão
+	sys.exit(0)
 
 signal.signal(signal.SIGINT, callback_finish)
 
 try:
-	connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+	connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST))
 	channel = connection.channel()
 	channel.exchange_declare(exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE)
 
@@ -41,7 +48,7 @@ try:
 	channel.queue_bind(exchange=EXCHANGE, queue=queue_name, routing_key=PAGAMENTOS_APROVADOS)
 	channel.basic_consume(queue=queue_name, on_message_callback=approved_payment, auto_ack=True)
 
-	print(' [*] Waiting to send orders. To exit press CTRL+C')
+	print('[i] Waiting to send orders. To exit press CTRL+C')
 	channel.start_consuming()
 
 except pika.exceptions.AMQPConnectionError:

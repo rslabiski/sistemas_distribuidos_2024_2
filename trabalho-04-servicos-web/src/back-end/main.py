@@ -19,34 +19,52 @@
 - Quando um cliente excluir um pedido, publica no tópico `Pedidos_Excluídos`.
 - Quando o pagamento de um pedido for recusado, publica no tópico `Pedidos_Excluídos`.
 '''
-from flask import Flask, jsonify, request
+from flask import Flask, request
+import json
+import requests
 import pika
 import sys
+import time
 import threading
 from common import *
 
 app = Flask(__name__)
 
+orders = []
+
+def set_order_status(id, status):
+	orders[id]['status'] = status
+	print(f"[i] Order ID {orders[id]['order_id']}: {orders[id]['status']}")
+
 def approved_payment(ch, method, properties, body):
 	try:
-		order_id = body.decode()
-		print(f'[x] Processing approved payment for order: {order_id}')
+		order = json.loads(body)
+		order_id = order['order_id']
+		print(f"[i] Processing approved payment for order ID {order_id}...")
+		time.sleep(2)
+		set_order_status(order_id, 'payment-approved')
 	except Exception as e:
 		print(f'[!] Error processing approved payment: {e}')
 
 
 def declined_payment(ch, method, properties, body):
 	try:
-		order_id = body.decode()
-		print(f'[x] Processing declined payment for order: {order_id}')
+		order = json.loads(body)
+		order_id = order['order_id']
+		print(f'[i] Processing declined payment for order ID {order_id}')
+		time.sleep(2)
+		set_order_status(order_id, 'payment-refused')
 	except Exception as e:
 		print(f'[!] Error processing declined payment: {e}')
 
 
 def delivered(ch, method, properties, body):
 	try:
-		order_id = body.decode()
-		print(f'[x] Processing delivered order: {order_id}')
+		order = json.loads(body)
+		order_id = order['order_id']
+		print(f'[i] Processing delivery for order ID {order_id}')
+		time.sleep(2)
+		set_order_status(order_id, 'delivered')
 	except Exception as e:
 		print(f'[!] Error processing delivered order: {e}')
 
@@ -71,7 +89,7 @@ def run_consumer():
 		channel.queue_bind(exchange=EXCHANGE, queue=queue_name, routing_key=PEDIDOS_ENVIADOS)
 		channel.basic_consume(queue=queue_name, on_message_callback=delivered, auto_ack=True)
 
-		print('[x] Waiting for messages. To exit press CTRL+C')	
+		print('[i] Waiting for messages. To exit press CTRL+C')	
 		channel.start_consuming()
 
 	except pika.exceptions.AMQPConnectionError:
@@ -85,22 +103,40 @@ def run_consumer():
 
 @app.get('/products')
 def get_products():
-	products = ['Product 1', 'Product 2', 'Product 3']
-	return jsonify(products), 200
-
+	try:
+		stock_url = f"http://{HOST}:{PORT_STOCK}/stock"
+		response = requests.get(stock_url)
+		return response.json(), response.status_code
+	except Exception as e:
+		sys.stderr.write(f'Exception: {e}\n')
+		return json.dumps('Server Error!'), 500
+	
+'''
+Formato:
+{
+	"items": [
+		{"id": 1, "amount": 10},
+		{"id": 2, "amount": 4},
+		{"id": 3, "amount": 5}
+	]
+}
+'''
 @app.post('/orders')
 def create_order():
-	data = request.get_json()
-	print(data)
-	order = { "client_id": 123,
-		"items": [
-			{"id": 1, "qnt": 10},
-			{"id": 2, "qnt": 4},
-			{"id": 3, "qnt": 5}
-		]
-	}
-	order_id = {'order_id': 10}
-	return jsonify(order_id), 201
+	try:
+		order = request.get_json()
+		order['order_id'] = len(orders)
+		order['status'] = 'payment_pending'
+		connection = pika.BlockingConnection(pika.ConnectionParameters(host=HOST))
+		channel = connection.channel()
+		channel.exchange_declare(exchange=EXCHANGE, exchange_type=EXCHANGE_TYPE)
+		channel.basic_publish(exchange=EXCHANGE, routing_key=PEDIDOS_CRIADOS, body=json.dumps(order))
+		orders.append(order)
+		print(f"[+] Created Order ID {order['order_id']} ({order['status']})")
+		return order, 201
+	except Exception as e:
+		sys.stderr.write(f'Exception: {e}\n')
+		return json.dumps('Server Error!'), 500
 
 if __name__ == '__main__':
 	# Criar um thread para o consumir eventos dos tópicos do Rabbit

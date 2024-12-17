@@ -1,5 +1,6 @@
 HOST = 'localhost'
 PORT_MAIN = 5000
+PORT_STOCK = 5001
 EXCHANGE = 'data'
 EXCHANGE_TYPE = 'topic'
 
