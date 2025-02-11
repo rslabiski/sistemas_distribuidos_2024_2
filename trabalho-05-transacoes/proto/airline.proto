@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+message Ticket {
+	int32 id = 1;
+	int32 quantity = 2;
+}
+
+message Tickets {
+	repeated Ticket tickets = 1;
+}
+
+message Status {
+	bool success = 1;
+}
+
+service Airline {
+	rpc buyTickets (Tickets) returns (Status);
+	rpc refoundTickets (Tickets) returns (Status);
+}
