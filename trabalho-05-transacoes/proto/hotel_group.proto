@@ -1,1 +1,14 @@
 syntax = "proto3";
+
+message Room {
+	int32 id = 1;
+}
+
+message HotelGroupStatus {
+	bool success = 1;
+}
+
+service HotelGroup {
+	rpc book (Room) returns (HotelGroupStatus);
+	rpc cancelBook (Room) returns (HotelGroupStatus);
+}
