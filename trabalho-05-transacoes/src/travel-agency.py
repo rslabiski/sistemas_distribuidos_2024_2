@@ -17,31 +17,34 @@ def run():
         car_locator_stub = car_locator_pb2_grpc.CarLocatorStub(car_locator_channel)
         hotel_stub = hotel_group_pb2_grpc.HotelGroupStub(hotel_group_channel)
 
-        # Criando uma requisição para comprar tickets
-        tickets_request = airline_pb2.Tickets(
-            tickets=[
-                airline_pb2.Ticket(id=1, quantity=2),
-                airline_pb2.Ticket(id=2, quantity=3)
-            ]
-        )
-
-        # Chamando o método buyTickets
-        print("Buying tickets...")
-        buy_response = airline_stub.buyTickets(tickets_request)
-        print(f"Buy Response: {buy_response}")
-
-        # Criando uma requisição para reembolsar tickets
-        refund_request = airline_pb2.Tickets(
-            tickets=[
-                airline_pb2.Ticket(id=1, quantity=1),
-                airline_pb2.Ticket(id=2, quantity=1)
-            ]
-        )
-
-        # Chamando o método refoundTickets
-        print("Refunding tickets...")
-        refund_response = airline_stub.refoundTickets(refund_request)
-        print(f"Refund Response: {refund_response}")
+        # Obtendo a lista de tickets disponíveis
+        available_tickets = airline_stub.getTicketsAvailable(airline_pb2.AirlineEmpty())
+        
+        # Exibindo a lista de tickets ao usuário
+        print("Tickets disponíveis:")
+        for ticket in available_tickets.tickets:
+            print(f'ID: {ticket.id}, Quantidade: {ticket.quantity}')
+        
+        # Solicitando entrada do usuário
+        user_input = input("Digite os IDs e quantidades desejadas (ex: 1 2 3 4 para 2 do ID 1 e 3 do ID 4): ")
+        
+        # Convertendo entrada para lista de tickets
+        values = list(map(int, user_input.split()))
+        if len(values) % 2 != 0:
+            print("Entrada inválida. Certifique-se de inserir pares de valores (ID e quantidade).")
+            return
+        
+        ticket_list = []
+        for i in range(0, len(values), 2):
+            ticket_list.append(airline_pb2.Ticket(id=values[i], quantity=values[i+1]))
+        
+        # Realizando a compra
+        response = airline_stub.buyTickets(airline_pb2.Tickets(tickets=ticket_list))
+        
+        # Exibindo o resultado
+        if not response.success:
+            print("Falha na compra. Verifique a disponibilidade dos tickets.")
+            return
 
         # Criando uma requisição para alugar carro
         car = car_locator_pb2.Car(id=1)

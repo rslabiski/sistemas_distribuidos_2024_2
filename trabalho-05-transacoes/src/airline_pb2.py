@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rairline.proto\"&\n\x06Ticket\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"#\n\x07Tickets\x12\x18\n\x07tickets\x18\x01 \x03(\x0b\x32\x07.Ticket\" \n\rAirlineStatus\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32]\n\x07\x41irline\x12&\n\nbuyTickets\x12\x08.Tickets\x1a\x0e.AirlineStatus\x12*\n\x0erefoundTickets\x12\x08.Tickets\x1a\x0e.AirlineStatusb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\rairline.proto\"&\n\x06Ticket\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"#\n\x07Tickets\x12\x18\n\x07tickets\x18\x01 \x03(\x0b\x32\x07.Ticket\" \n\rAirlineStatus\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x0e\n\x0c\x41irlineEmpty2\x8d\x01\n\x07\x41irline\x12&\n\nbuyTickets\x12\x08.Tickets\x1a\x0e.AirlineStatus\x12*\n\x0erefoundTickets\x12\x08.Tickets\x1a\x0e.AirlineStatus\x12.\n\x13getTicketsAvailable\x12\r.AirlineEmpty\x1a\x08.Ticketsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -37,6 +37,8 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_TICKETS']._serialized_end=92
   _globals['_AIRLINESTATUS']._serialized_start=94
   _globals['_AIRLINESTATUS']._serialized_end=126
-  _globals['_AIRLINE']._serialized_start=128
-  _globals['_AIRLINE']._serialized_end=221
+  _globals['_AIRLINEEMPTY']._serialized_start=128
+  _globals['_AIRLINEEMPTY']._serialized_end=142
+  _globals['_AIRLINE']._serialized_start=145
+  _globals['_AIRLINE']._serialized_end=286
 # @@protoc_insertion_point(module_scope)

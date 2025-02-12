@@ -13,7 +13,10 @@ message AirlineStatus {
 	bool success = 1;
 }
 
+message AirlineEmpty {}
+
 service Airline {
 	rpc buyTickets (Tickets) returns (AirlineStatus);
 	rpc refoundTickets (Tickets) returns (AirlineStatus);
+	rpc getTicketsAvailable (AirlineEmpty) returns (Tickets);
 }

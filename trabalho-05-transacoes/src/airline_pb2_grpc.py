@@ -44,6 +44,11 @@ class AirlineStub(object):
                 request_serializer=airline__pb2.Tickets.SerializeToString,
                 response_deserializer=airline__pb2.AirlineStatus.FromString,
                 _registered_method=True)
+        self.getTicketsAvailable = channel.unary_unary(
+                '/Airline/getTicketsAvailable',
+                request_serializer=airline__pb2.AirlineEmpty.SerializeToString,
+                response_deserializer=airline__pb2.Tickets.FromString,
+                _registered_method=True)
 
 
 class AirlineServicer(object):
@@ -61,6 +66,12 @@ class AirlineServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def getTicketsAvailable(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AirlineServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +84,11 @@ def add_AirlineServicer_to_server(servicer, server):
                     servicer.refoundTickets,
                     request_deserializer=airline__pb2.Tickets.FromString,
                     response_serializer=airline__pb2.AirlineStatus.SerializeToString,
+            ),
+            'getTicketsAvailable': grpc.unary_unary_rpc_method_handler(
+                    servicer.getTicketsAvailable,
+                    request_deserializer=airline__pb2.AirlineEmpty.FromString,
+                    response_serializer=airline__pb2.Tickets.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +145,33 @@ class Airline(object):
             '/Airline/refoundTickets',
             airline__pb2.Tickets.SerializeToString,
             airline__pb2.AirlineStatus.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def getTicketsAvailable(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/Airline/getTicketsAvailable',
+            airline__pb2.AirlineEmpty.SerializeToString,
+            airline__pb2.Tickets.FromString,
             options,
             channel_credentials,
             insecure,
