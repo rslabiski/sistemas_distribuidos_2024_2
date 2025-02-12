@@ -1,1 +1,14 @@
 syntax = "proto3";
+
+message Car {
+	int32 id = 1;
+}
+
+message CarLocatorStatus {
+	bool success = 1;
+}
+
+service CarLocator {
+	rpc rent (Car) returns (CarLocatorStatus);
+	rpc cancelRent (Car) returns (CarLocatorStatus);
+}

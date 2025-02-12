@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-import airline_pb2 as airline__pb2
+import car_locator_pb2 as car__locator__pb2
 
 GRPC_GENERATED_VERSION = '1.70.0'
 GRPC_VERSION = grpc.__version__
@@ -18,14 +18,14 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + f' but the generated code in airline_pb2_grpc.py depends on'
+        + f' but the generated code in car_locator_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
 
 
-class AirlineStub(object):
+class CarLocatorStub(object):
     """Missing associated documentation comment in .proto file."""
 
     def __init__(self, channel):
@@ -34,59 +34,59 @@ class AirlineStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.buyTickets = channel.unary_unary(
-                '/Airline/buyTickets',
-                request_serializer=airline__pb2.Tickets.SerializeToString,
-                response_deserializer=airline__pb2.AirlineStatus.FromString,
+        self.rent = channel.unary_unary(
+                '/CarLocator/rent',
+                request_serializer=car__locator__pb2.Car.SerializeToString,
+                response_deserializer=car__locator__pb2.CarLocatorStatus.FromString,
                 _registered_method=True)
-        self.refoundTickets = channel.unary_unary(
-                '/Airline/refoundTickets',
-                request_serializer=airline__pb2.Tickets.SerializeToString,
-                response_deserializer=airline__pb2.AirlineStatus.FromString,
+        self.cancelRent = channel.unary_unary(
+                '/CarLocator/cancelRent',
+                request_serializer=car__locator__pb2.Car.SerializeToString,
+                response_deserializer=car__locator__pb2.CarLocatorStatus.FromString,
                 _registered_method=True)
 
 
-class AirlineServicer(object):
+class CarLocatorServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def buyTickets(self, request, context):
+    def rent(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def refoundTickets(self, request, context):
+    def cancelRent(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
 
-def add_AirlineServicer_to_server(servicer, server):
+def add_CarLocatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'buyTickets': grpc.unary_unary_rpc_method_handler(
-                    servicer.buyTickets,
-                    request_deserializer=airline__pb2.Tickets.FromString,
-                    response_serializer=airline__pb2.AirlineStatus.SerializeToString,
+            'rent': grpc.unary_unary_rpc_method_handler(
+                    servicer.rent,
+                    request_deserializer=car__locator__pb2.Car.FromString,
+                    response_serializer=car__locator__pb2.CarLocatorStatus.SerializeToString,
             ),
-            'refoundTickets': grpc.unary_unary_rpc_method_handler(
-                    servicer.refoundTickets,
-                    request_deserializer=airline__pb2.Tickets.FromString,
-                    response_serializer=airline__pb2.AirlineStatus.SerializeToString,
+            'cancelRent': grpc.unary_unary_rpc_method_handler(
+                    servicer.cancelRent,
+                    request_deserializer=car__locator__pb2.Car.FromString,
+                    response_serializer=car__locator__pb2.CarLocatorStatus.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-            'Airline', rpc_method_handlers)
+            'CarLocator', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
-    server.add_registered_method_handlers('Airline', rpc_method_handlers)
+    server.add_registered_method_handlers('CarLocator', rpc_method_handlers)
 
 
  # This class is part of an EXPERIMENTAL API.
-class Airline(object):
+class CarLocator(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def buyTickets(request,
+    def rent(request,
             target,
             options=(),
             channel_credentials=None,
@@ -99,9 +99,9 @@ class Airline(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/Airline/buyTickets',
-            airline__pb2.Tickets.SerializeToString,
-            airline__pb2.AirlineStatus.FromString,
+            '/CarLocator/rent',
+            car__locator__pb2.Car.SerializeToString,
+            car__locator__pb2.CarLocatorStatus.FromString,
             options,
             channel_credentials,
             insecure,
@@ -113,7 +113,7 @@ class Airline(object):
             _registered_method=True)
 
     @staticmethod
-    def refoundTickets(request,
+    def cancelRent(request,
             target,
             options=(),
             channel_credentials=None,
@@ -126,9 +126,9 @@ class Airline(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/Airline/refoundTickets',
-            airline__pb2.Tickets.SerializeToString,
-            airline__pb2.AirlineStatus.FromString,
+            '/CarLocator/cancelRent',
+            car__locator__pb2.Car.SerializeToString,
+            car__locator__pb2.CarLocatorStatus.FromString,
             options,
             channel_credentials,
             insecure,

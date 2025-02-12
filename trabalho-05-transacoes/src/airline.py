@@ -8,11 +8,11 @@ from ports import AIRLINE_PORT
 class ServiceImplementation(airline_pb2_grpc.AirlineServicer):
     def buyTickets(self, request, context):
         print(f'buyTickets Received: {request}')
-        return airline_pb2.Status(success=True)
+        return airline_pb2.AirlineStatus(success=True)
     
     def refoundTickets(self, request, context):
         print(f'refoundTickets Received: {request}')
-        return airline_pb2.Status(success=True)
+        return airline_pb2.AirlineStatus(success=True)
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 airline_pb2_grpc.add_AirlineServicer_to_server(ServiceImplementation(), server)

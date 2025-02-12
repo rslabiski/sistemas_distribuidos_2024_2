@@ -9,11 +9,11 @@ message Tickets {
 	repeated Ticket tickets = 1;
 }
 
-message Status {
+message AirlineStatus {
 	bool success = 1;
 }
 
 service Airline {
-	rpc buyTickets (Tickets) returns (Status);
-	rpc refoundTickets (Tickets) returns (Status);
+	rpc buyTickets (Tickets) returns (AirlineStatus);
+	rpc refoundTickets (Tickets) returns (AirlineStatus);
 }
