@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x63\x61r_locator.proto\"\x11\n\x03\x43\x61r\x12\n\n\x02id\x18\x01 \x01(\x05\"#\n\x10\x43\x61rLocatorStatus\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32T\n\nCarLocator\x12\x1f\n\x04rent\x12\x04.Car\x1a\x11.CarLocatorStatus\x12%\n\ncancelRent\x12\x04.Car\x1a\x11.CarLocatorStatusb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x63\x61r_locator.proto\"#\n\x03\x43\x61r\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"\x1a\n\x04\x43\x61rs\x12\x12\n\x04\x63\x61rs\x18\x01 \x03(\x0b\x32\x04.Car\"#\n\x10\x43\x61rLocatorStatus\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x11\n\x0f\x43\x61rLocatorEmpty2\x87\x01\n\nCarLocator\x12$\n\x08rentCars\x12\x05.Cars\x1a\x11.CarLocatorStatus\x12&\n\ncancelRent\x12\x05.Cars\x1a\x11.CarLocatorStatus\x12+\n\x10getCarsAvailable\x12\x10.CarLocatorEmpty\x1a\x05.Carsb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,9 +32,13 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'car_locator_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_CAR']._serialized_start=21
-  _globals['_CAR']._serialized_end=38
-  _globals['_CARLOCATORSTATUS']._serialized_start=40
-  _globals['_CARLOCATORSTATUS']._serialized_end=75
-  _globals['_CARLOCATOR']._serialized_start=77
-  _globals['_CARLOCATOR']._serialized_end=161
+  _globals['_CAR']._serialized_end=56
+  _globals['_CARS']._serialized_start=58
+  _globals['_CARS']._serialized_end=84
+  _globals['_CARLOCATORSTATUS']._serialized_start=86
+  _globals['_CARLOCATORSTATUS']._serialized_end=121
+  _globals['_CARLOCATOREMPTY']._serialized_start=123
+  _globals['_CARLOCATOREMPTY']._serialized_end=140
+  _globals['_CARLOCATOR']._serialized_start=143
+  _globals['_CARLOCATOR']._serialized_end=278
 # @@protoc_insertion_point(module_scope)

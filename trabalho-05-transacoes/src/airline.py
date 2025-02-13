@@ -15,16 +15,15 @@ class ServiceImplementation(airline_pb2_grpc.AirlineServicer):
         # Verifica se há estoque suficiente
         for ticket in request.tickets:
             if ticket.id not in ticket_stock:
-                print(f'ID {ticket.id} not available')
+                print(f'Passagem ID {ticket.id} invalido')
                 return airline_pb2.AirlineStatus(success=False)
             if ticket_stock[ticket.id] < ticket.quantity:
-                print(f'ID {ticket.id}, quantity {ticket.quantity} not available')
+                print(f'{ticket.quantity} passagem(s) ID {ticket.id} indisponivel(is)')
                 return airline_pb2.AirlineStatus(success=False)
         # Atualiza estoque
         for ticket in request.tickets:
             ticket_stock[ticket.id] -= ticket.quantity
-            print(f'Buy {ticket.quantity} ID {ticket.id}')
-        
+            print(f'Comprada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
         return airline_pb2.AirlineStatus(success=True)
     
     def refoundTickets(self, request, context):
@@ -32,12 +31,12 @@ class ServiceImplementation(airline_pb2_grpc.AirlineServicer):
         # Valida se os tickets existem no estoque
         for ticket in request.tickets:
             if ticket.id not in ticket_stock:
-                print(f'ID {ticket.id} not available for refund')
+                print(f'Passagem ID {ticket.id} indisponivel para estorno')
                 return airline_pb2.AirlineStatus(success=False)
         # Atualiza estoque
         for ticket in request.tickets:
             ticket_stock[ticket.id] += ticket.quantity
-            print(f'Refound {ticket.quantity} ID {ticket.id}')
+            print(f'Estornada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
         return airline_pb2.AirlineStatus(success=True)
     
     def getTicketsAvailable(self, request, context):
@@ -50,7 +49,7 @@ airline_pb2_grpc.add_AirlineServicer_to_server(ServiceImplementation(), server)
 server.add_insecure_port(f'[::]:{AIRLINE_PORT}')
 
 def handle_signal(signum, frame):
-    print("Shutting down...")
+    print("Encerrando...")
     server.stop(5) # Tempo de espera de 5 segundos para requisições em andamento
 
 # Capturar sinais de interrupção (Ctrl+C ou kill)
@@ -58,5 +57,5 @@ signal.signal(signal.SIGINT, handle_signal)
 
 if __name__ == "__main__":
     server.start()
-    print(f'Airline running on port {AIRLINE_PORT}')
+    print(f'Companhia aerea executando na porta {AIRLINE_PORT}')
     server.wait_for_termination()  # Aguarda até receber Ctrl+C

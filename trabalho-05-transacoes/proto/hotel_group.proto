@@ -2,13 +2,21 @@ syntax = "proto3";
 
 message Room {
 	int32 id = 1;
+	int32 quantity = 2;
+}
+
+message Rooms {
+	repeated Room rooms = 1;
 }
 
 message HotelGroupStatus {
 	bool success = 1;
 }
 
+message HotelGroupEmpty {}
+
 service HotelGroup {
-	rpc book (Room) returns (HotelGroupStatus);
-	rpc cancelBook (Room) returns (HotelGroupStatus);
+	rpc bookRooms (Rooms) returns (HotelGroupStatus);
+	rpc cancelReservations (Rooms) returns (HotelGroupStatus);
+	rpc getRoomsAvailable (HotelGroupEmpty) returns (Rooms);
 }

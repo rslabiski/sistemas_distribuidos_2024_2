@@ -2,13 +2,21 @@ syntax = "proto3";
 
 message Car {
 	int32 id = 1;
+	int32 quantity = 2;
+}
+
+message Cars {
+	repeated Car cars = 1;
 }
 
 message CarLocatorStatus {
 	bool success = 1;
 }
 
+message CarLocatorEmpty {}
+
 service CarLocator {
-	rpc rent (Car) returns (CarLocatorStatus);
-	rpc cancelRent (Car) returns (CarLocatorStatus);
+	rpc rentCars (Cars) returns (CarLocatorStatus);
+	rpc cancelRent (Cars) returns (CarLocatorStatus);
+	rpc getCarsAvailable (CarLocatorEmpty) returns (Cars);
 }

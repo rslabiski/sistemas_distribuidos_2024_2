@@ -34,22 +34,27 @@ class CarLocatorStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.rent = channel.unary_unary(
-                '/CarLocator/rent',
-                request_serializer=car__locator__pb2.Car.SerializeToString,
+        self.rentCars = channel.unary_unary(
+                '/CarLocator/rentCars',
+                request_serializer=car__locator__pb2.Cars.SerializeToString,
                 response_deserializer=car__locator__pb2.CarLocatorStatus.FromString,
                 _registered_method=True)
         self.cancelRent = channel.unary_unary(
                 '/CarLocator/cancelRent',
-                request_serializer=car__locator__pb2.Car.SerializeToString,
+                request_serializer=car__locator__pb2.Cars.SerializeToString,
                 response_deserializer=car__locator__pb2.CarLocatorStatus.FromString,
+                _registered_method=True)
+        self.getCarsAvailable = channel.unary_unary(
+                '/CarLocator/getCarsAvailable',
+                request_serializer=car__locator__pb2.CarLocatorEmpty.SerializeToString,
+                response_deserializer=car__locator__pb2.Cars.FromString,
                 _registered_method=True)
 
 
 class CarLocatorServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def rent(self, request, context):
+    def rentCars(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -61,18 +66,29 @@ class CarLocatorServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def getCarsAvailable(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_CarLocatorServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'rent': grpc.unary_unary_rpc_method_handler(
-                    servicer.rent,
-                    request_deserializer=car__locator__pb2.Car.FromString,
+            'rentCars': grpc.unary_unary_rpc_method_handler(
+                    servicer.rentCars,
+                    request_deserializer=car__locator__pb2.Cars.FromString,
                     response_serializer=car__locator__pb2.CarLocatorStatus.SerializeToString,
             ),
             'cancelRent': grpc.unary_unary_rpc_method_handler(
                     servicer.cancelRent,
-                    request_deserializer=car__locator__pb2.Car.FromString,
+                    request_deserializer=car__locator__pb2.Cars.FromString,
                     response_serializer=car__locator__pb2.CarLocatorStatus.SerializeToString,
+            ),
+            'getCarsAvailable': grpc.unary_unary_rpc_method_handler(
+                    servicer.getCarsAvailable,
+                    request_deserializer=car__locator__pb2.CarLocatorEmpty.FromString,
+                    response_serializer=car__locator__pb2.Cars.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,7 +102,7 @@ class CarLocator(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def rent(request,
+    def rentCars(request,
             target,
             options=(),
             channel_credentials=None,
@@ -99,8 +115,8 @@ class CarLocator(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/CarLocator/rent',
-            car__locator__pb2.Car.SerializeToString,
+            '/CarLocator/rentCars',
+            car__locator__pb2.Cars.SerializeToString,
             car__locator__pb2.CarLocatorStatus.FromString,
             options,
             channel_credentials,
@@ -127,8 +143,35 @@ class CarLocator(object):
             request,
             target,
             '/CarLocator/cancelRent',
-            car__locator__pb2.Car.SerializeToString,
+            car__locator__pb2.Cars.SerializeToString,
             car__locator__pb2.CarLocatorStatus.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def getCarsAvailable(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/CarLocator/getCarsAvailable',
+            car__locator__pb2.CarLocatorEmpty.SerializeToString,
+            car__locator__pb2.Cars.FromString,
             options,
             channel_credentials,
             insecure,

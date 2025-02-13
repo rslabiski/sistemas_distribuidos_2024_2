@@ -34,28 +34,39 @@ class HotelGroupStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.book = channel.unary_unary(
-                '/HotelGroup/book',
-                request_serializer=hotel__group__pb2.Room.SerializeToString,
+        self.bookRooms = channel.unary_unary(
+                '/HotelGroup/bookRooms',
+                request_serializer=hotel__group__pb2.Rooms.SerializeToString,
                 response_deserializer=hotel__group__pb2.HotelGroupStatus.FromString,
                 _registered_method=True)
-        self.cancelBook = channel.unary_unary(
-                '/HotelGroup/cancelBook',
-                request_serializer=hotel__group__pb2.Room.SerializeToString,
+        self.cancelReservations = channel.unary_unary(
+                '/HotelGroup/cancelReservations',
+                request_serializer=hotel__group__pb2.Rooms.SerializeToString,
                 response_deserializer=hotel__group__pb2.HotelGroupStatus.FromString,
+                _registered_method=True)
+        self.getRoomsAvailable = channel.unary_unary(
+                '/HotelGroup/getRoomsAvailable',
+                request_serializer=hotel__group__pb2.HotelGroupEmpty.SerializeToString,
+                response_deserializer=hotel__group__pb2.Rooms.FromString,
                 _registered_method=True)
 
 
 class HotelGroupServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def book(self, request, context):
+    def bookRooms(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def cancelBook(self, request, context):
+    def cancelReservations(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def getRoomsAvailable(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -64,15 +75,20 @@ class HotelGroupServicer(object):
 
 def add_HotelGroupServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'book': grpc.unary_unary_rpc_method_handler(
-                    servicer.book,
-                    request_deserializer=hotel__group__pb2.Room.FromString,
+            'bookRooms': grpc.unary_unary_rpc_method_handler(
+                    servicer.bookRooms,
+                    request_deserializer=hotel__group__pb2.Rooms.FromString,
                     response_serializer=hotel__group__pb2.HotelGroupStatus.SerializeToString,
             ),
-            'cancelBook': grpc.unary_unary_rpc_method_handler(
-                    servicer.cancelBook,
-                    request_deserializer=hotel__group__pb2.Room.FromString,
+            'cancelReservations': grpc.unary_unary_rpc_method_handler(
+                    servicer.cancelReservations,
+                    request_deserializer=hotel__group__pb2.Rooms.FromString,
                     response_serializer=hotel__group__pb2.HotelGroupStatus.SerializeToString,
+            ),
+            'getRoomsAvailable': grpc.unary_unary_rpc_method_handler(
+                    servicer.getRoomsAvailable,
+                    request_deserializer=hotel__group__pb2.HotelGroupEmpty.FromString,
+                    response_serializer=hotel__group__pb2.Rooms.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,7 +102,7 @@ class HotelGroup(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def book(request,
+    def bookRooms(request,
             target,
             options=(),
             channel_credentials=None,
@@ -99,8 +115,8 @@ class HotelGroup(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/HotelGroup/book',
-            hotel__group__pb2.Room.SerializeToString,
+            '/HotelGroup/bookRooms',
+            hotel__group__pb2.Rooms.SerializeToString,
             hotel__group__pb2.HotelGroupStatus.FromString,
             options,
             channel_credentials,
@@ -113,7 +129,7 @@ class HotelGroup(object):
             _registered_method=True)
 
     @staticmethod
-    def cancelBook(request,
+    def cancelReservations(request,
             target,
             options=(),
             channel_credentials=None,
@@ -126,9 +142,36 @@ class HotelGroup(object):
         return grpc.experimental.unary_unary(
             request,
             target,
-            '/HotelGroup/cancelBook',
-            hotel__group__pb2.Room.SerializeToString,
+            '/HotelGroup/cancelReservations',
+            hotel__group__pb2.Rooms.SerializeToString,
             hotel__group__pb2.HotelGroupStatus.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def getRoomsAvailable(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/HotelGroup/getRoomsAvailable',
+            hotel__group__pb2.HotelGroupEmpty.SerializeToString,
+            hotel__group__pb2.Rooms.FromString,
             options,
             channel_credentials,
             insecure,
