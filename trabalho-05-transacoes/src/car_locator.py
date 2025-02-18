@@ -1,47 +1,93 @@
 import signal
 import grpc
+import sqlite3
 import car_locator_pb2
 import car_locator_pb2_grpc
 from concurrent import futures
 from ports import CAR_LOCATOR_PORT
 
-# Lista inicial de carros
-car_stock = {0:5, 1:5, 2:5, 3:5}
+# Info do banco de dados
+db_file = 'car_locator_db.db'
+table = 'carro'
 
 class ServiceImplementation(car_locator_pb2_grpc.CarLocatorServicer):
 
     def rentCars(self, request, context):
-        global car_stock
-        # Verifica se há estoque suficiente
-        for car in request.cars:
-            if car.id not in car_stock:
-                print(f'Carro ID {car.id} invalido')
-                return car_locator_pb2.CarLocatorStatus(success=False)
-            if car_stock[car.id] < car.quantity:
-                print(f'{car.quantity} carros ID {car.id} indisponiveis')
-                return car_locator_pb2.CarLocatorStatus(success=False)
-        # Atualiza estoque
-        for car in request.cars:
-            car_stock[car.id] -= car.quantity
-            print(f'Alugado(s) {car.quantity} carro(s) ID {car.id}')
-        return car_locator_pb2.CarLocatorStatus(success=True)
-    
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            # Verifica ID e estoque
+            for car in request.cars:
+                db_cursor.execute(f'SELECT * FROM {table} WHERE id = {car.id}')
+                result = db_cursor.fetchone()
+                
+                if not result:
+                    print(f'Carro ID {car.id} invalido')
+                    return car_locator_pb2.CarLocatorStatus(success=False)
+                if result[1] < car.quantity:
+                    print(f'{car.quantity} carro(s) ID {car.id} indisponivel(is)')
+                    return car_locator_pb2.CarLocatorStatus(success=False)
+
+            # Atualiza estoque
+            for car in request.cars:
+                query = f'UPDATE {table} SET quantidade = quantidade - {car.quantity} WHERE id = {car.id}'
+                db_cursor.execute(query)
+                print(f'Alugado(s) {car.quantity} carro(s) ID {car.id}')
+            
+            data_base.commit()
+            data_base.close()
+            return car_locator_pb2.CarLocatorStatus(success=True)
+        
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+            return car_locator_pb2.CarLocatorStatus(success=False)
+
+
     def cancelRent(self, request, context):
-        global car_stock
-        # Valida se os carros existem no estoque
-        for car in request.cars:
-            if car.id not in car_stock:
-                print(f'Carro ID {car.id} indisponivel para cancelamento')
-                return car_locator_pb2.CarLocatorStatus(success=False)
-        # Atualiza estoque
-        for car in request.cars:
-            car_stock[car.id] += car.quantity
-            print(f'Cancelado(s) aluguel(is) de {car.quantity} carro(s) ID {car.id}')
-        return car_locator_pb2.CarLocatorStatus(success=True)
-    
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            # Verifica ID e estoque
+            for car in request.cars:
+                db_cursor.execute(f'SELECT * FROM {table} WHERE id = {car.id}')
+                result = db_cursor.fetchone()
+                if not result:
+                    print(f'Carro ID {car.id} indisponivel para cancelamento')
+                    return car_locator_pb2.CarLocatorStatus(success=False)
+
+            # Atualiza estoque
+            for car in request.cars:
+                query = f'UPDATE {table} SET quantidade = quantidade + {car.quantity} WHERE id = {car.id}'
+                db_cursor.execute(query)
+                print(f'Cancelado(s) aluguel(is) de {car.quantity} carro(s) ID {car.id}')
+            
+            data_base.commit()
+            data_base.close()
+            return car_locator_pb2.CarLocatorStatus(success=True)
+        
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+            return car_locator_pb2.CarLocatorStatus(success=False)
+
+
     def getCarsAvailable(self, request, context):
-        global car_stock
-        available_cars = [car_locator_pb2.Car(id=c_id, quantity=qty) for c_id, qty in car_stock.items()]
+        available_cars = []
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            db_cursor.execute(f'SELECT * FROM {table}')
+            cars = db_cursor.fetchall()
+            for car in cars:
+                available_cars.append(car_locator_pb2.Car(id=car[0], quantity=car[1]))
+
+            data_base.close()
+
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+
         return car_locator_pb2.Cars(cars=available_cars)
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
