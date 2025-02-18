@@ -1,47 +1,93 @@
 import signal
 import grpc
+import sqlite3
 import airline_pb2
 import airline_pb2_grpc
 from concurrent import futures
 from ports import AIRLINE_PORT
 
-# Lista inicial de tickets
-ticket_stock = {0:1, 1:2, 2:3, 3:4, 4:5, 5:6}
+# Info do banco de dados
+db_file = 'airline_db.db'
+table = 'passagem'
 
 class ServiceImplementation(airline_pb2_grpc.AirlineServicer):
 
     def buyTickets(self, request, context):
-        global ticket_stock
-        # Verifica se há estoque suficiente
-        for ticket in request.tickets:
-            if ticket.id not in ticket_stock:
-                print(f'Passagem ID {ticket.id} invalido')
-                return airline_pb2.AirlineStatus(success=False)
-            if ticket_stock[ticket.id] < ticket.quantity:
-                print(f'{ticket.quantity} passagem(s) ID {ticket.id} indisponivel(is)')
-                return airline_pb2.AirlineStatus(success=False)
-        # Atualiza estoque
-        for ticket in request.tickets:
-            ticket_stock[ticket.id] -= ticket.quantity
-            print(f'Comprada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
-        return airline_pb2.AirlineStatus(success=True)
-    
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            # Verifica ID e estoque
+            for ticket in request.tickets:
+                db_cursor.execute(f'SELECT * FROM {table} WHERE id = {ticket.id}')
+                result = db_cursor.fetchone()
+                
+                if not result:
+                    print(f'Passagem ID {ticket.id} invalido')
+                    return airline_pb2.AirlineStatus(success=False)
+                if result[1] < ticket.quantity:
+                    print(f'{ticket.quantity} passagem(s) ID {ticket.id} indisponivel(is)')
+                    return airline_pb2.AirlineStatus(success=False)
+
+            # Atualiza estoque
+            for ticket in request.tickets:
+                query = f'UPDATE {table} SET quantidade = quantidade - {ticket.quantity} WHERE id = {ticket.id}'
+                db_cursor.execute(query)
+                print(f'Comprada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
+            
+            data_base.commit()
+            data_base.close()
+            return airline_pb2.AirlineStatus(success=True)
+        
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+            return airline_pb2.AirlineStatus(success=False)
+
+
     def refoundTickets(self, request, context):
-        global ticket_stock
-        # Valida se os tickets existem no estoque
-        for ticket in request.tickets:
-            if ticket.id not in ticket_stock:
-                print(f'Passagem ID {ticket.id} indisponivel para estorno')
-                return airline_pb2.AirlineStatus(success=False)
-        # Atualiza estoque
-        for ticket in request.tickets:
-            ticket_stock[ticket.id] += ticket.quantity
-            print(f'Estornada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
-        return airline_pb2.AirlineStatus(success=True)
-    
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            # Verifica ID
+            for ticket in request.tickets:
+                db_cursor.execute(f'SELECT * FROM {table} WHERE id = {ticket.id}')
+                result = db_cursor.fetchone()
+                if not result:
+                    print(f'Passagem ID {ticket.id} indisponivel para estorno')
+                    return airline_pb2.AirlineStatus(success=False)
+
+            # Atualiza estoque
+            for ticket in request.tickets:
+                query = f'UPDATE {table} SET quantidade = quantidade + {ticket.quantity} WHERE id = {ticket.id}'
+                db_cursor.execute(query)
+                print(f'Estornada(s) {ticket.quantity} passagem(s) ID {ticket.id}')
+            
+            data_base.commit()
+            data_base.close()
+            return airline_pb2.AirlineStatus(success=True)
+        
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+            return airline_pb2.AirlineStatus(success=False)
+
+
     def getTicketsAvailable(self, request, context):
-        global ticket_stock
-        available_tickets = [airline_pb2.Ticket(id=t_id, quantity=qty) for t_id, qty in ticket_stock.items()]
+        available_tickets = []
+        try:
+            data_base = sqlite3.connect(db_file)
+            db_cursor = data_base.cursor()
+
+            db_cursor.execute(f'SELECT * FROM {table}')
+            tickets = db_cursor.fetchall()
+            for ticket in tickets:
+                available_tickets.append(airline_pb2.Ticket(id=ticket[0], quantity=ticket[1]))
+
+            data_base.close()
+
+        except sqlite3.Error as err:
+            print(f'ERR: {err}')
+
         return airline_pb2.Tickets(tickets=available_tickets)
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
