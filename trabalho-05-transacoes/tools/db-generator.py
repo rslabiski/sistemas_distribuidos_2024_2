@@ -3,13 +3,13 @@ import sqlite3
 try:
 	generate = input('air | car | hotel: ')
 	if generate == 'air':
-		db_file = '../src/airline_db.db'
+		db_file = 'airline_db.db'
 		table_name = 'passagem'
 	elif generate == 'car':
-		db_file = '../src/car_locator_db.db'
+		db_file = 'car_locator_db.db'
 		table_name = 'carro'
 	else:
-		db_file = '../src/hotel_group_db.db'
+		db_file = 'hotel_group_db.db'
 		table_name = 'quarto'
 
 	data_base = sqlite3.connect(db_file) # carrega/cria o banco de dados
