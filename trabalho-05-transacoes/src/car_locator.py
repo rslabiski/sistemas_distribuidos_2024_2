@@ -7,7 +7,7 @@ from concurrent import futures
 from ports import CAR_LOCATOR_PORT
 
 # Info do banco de dados
-db_file = 'car_locator_db.db'
+db_file = 'database/car_locator_db.db'
 table = 'carro'
 
 class ServiceImplementation(car_locator_pb2_grpc.CarLocatorServicer):

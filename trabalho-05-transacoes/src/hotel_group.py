@@ -7,7 +7,7 @@ from concurrent import futures
 from ports import HOTEL_GROUP_PORT
 
 # Info do banco de dados
-db_file = 'hotel_group_db.db'
+db_file = 'database/hotel_group_db.db'
 table = 'quarto'
 
 class ServiceImplementation(hotel_group_pb2_grpc.HotelGroupServicer):

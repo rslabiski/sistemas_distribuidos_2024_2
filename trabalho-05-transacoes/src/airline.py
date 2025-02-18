@@ -7,7 +7,7 @@ from concurrent import futures
 from ports import AIRLINE_PORT
 
 # Info do banco de dados
-db_file = 'airline_db.db'
+db_file = 'database/airline_db.db'
 table = 'passagem'
 
 class ServiceImplementation(airline_pb2_grpc.AirlineServicer):
