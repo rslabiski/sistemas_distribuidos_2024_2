@@ -32,6 +32,12 @@ def run():
         for i in range(0, len(values), 2):
             ticket_list.append(airline_pb2.Ticket(id=values[i], quantity=values[i+1]))
 
+        # Realizando a compra
+        response = airline_stub.buyTickets(airline_pb2.Tickets(tickets=ticket_list))
+        if not response.success:
+            print("Falha na compra. Verifique a disponibilidade dos tickets.")
+            return
+
         # Etapa de locação de carros
         available_cars = car_locator_stub.getCarsAvailable(car_locator_pb2.CarLocatorEmpty())
         print("Carros disponíveis:")
@@ -46,6 +52,14 @@ def run():
         car_list = []
         for i in range(0, len(values), 2):
             car_list.append(car_locator_pb2.Car(id=values[i], quantity=values[i+1]))
+
+        # Realizando a locação
+        response = car_locator_stub.rentCars(car_locator_pb2.Cars(cars=car_list))
+        if not response.success:
+            print("Falha na locação. Verifique a disponibilidade dos carros.")
+            print("Estornando passagens...")
+            airline_stub.refoundTickets(airline_pb2.Tickets(tickets=ticket_list))
+            return
 
         # Etapa de reserva de quartos de hotel
         available_rooms = hotel_stub.getRoomsAvailable(hotel_group_pb2.HotelGroupEmpty())
@@ -62,20 +76,6 @@ def run():
         for i in range(0, len(values), 2):
             rooms_list.append(hotel_group_pb2.Room(id=values[i], quantity=values[i+1]))
 
-        # Realizando a compra
-        response = airline_stub.buyTickets(airline_pb2.Tickets(tickets=ticket_list))
-        if not response.success:
-            print("Falha na compra. Verifique a disponibilidade dos tickets.")
-            return
-        
-        # Realizando a locação
-        response = car_locator_stub.rentCars(car_locator_pb2.Cars(cars=car_list))
-        if not response.success:
-            print("Falha na locação. Verifique a disponibilidade dos carros.")
-            print("Estornando passagens...")
-            airline_stub.refoundTickets(airline_pb2.Tickets(tickets=ticket_list))
-            return
-        
         # Realizando a reserva
         response = hotel_stub.bookRooms(hotel_group_pb2.Rooms(rooms=rooms_list))
         if not response.success:
